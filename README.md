@@ -73,7 +73,15 @@ docker build -t cinit-ncm-api .
 docker run -d --name ncm-api --restart unless-stopped -p 3000:3000 cinit-ncm-api
 ```
 
-> fork 的 Dockerfile 修复：`node:18-alpine` + npmmirror 源 + `--ignore-scripts`（原 `prepare` 中的 husky 会导致 `npm install --production` 失败）+ 删除 2021 年的旧 lockfile。
+可选：接入网易云登录态（VIP 歌曲完整播放；不登录时 VIP 歌只有 45 秒试听）：
+
+```bash
+# 登录 music.163.com 后，将浏览器 Cookie 写入 ncm.env，再带 env 启动
+printf 'COOKIE=%s\n' '<浏览器 Cookie>' > ncm.env
+docker rm -f ncm-api && docker run -d --name ncm-api --restart unless-stopped -p 3000:3000 --env-file ncm.env cinit-ncm-api
+```
+
+> fork 修复：构建链（`node:18-alpine` + npmmirror + `--ignore-scripts` + 去旧 lockfile）；支持读取 `COOKIE` 环境变量（原版不支持）；上游异常防护（网络错误不再崩溃）。
 
 ### 5. tools
 
