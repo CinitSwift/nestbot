@@ -62,14 +62,27 @@ TTS 服务变量：`TTS_PORT`（8799）、`TTS_VOICE`（Tingting）、`TTS_LEAD_
 
 `search.py` / `details.py`：把网易云请求指向本机 `ncm-api`（`http://host.docker.internal:3000`），替代失效的第三方代理。
 
-### 4. tools
+### 4. 网易云后端 ncm-api（外部仓库）
+
+点歌的搜索 / 取流依赖本机运行的 [NeteaseCloudMusicApi](https://github.com/CinitSwift/NeteaseCloudMusicApi)（Binaryify 项目的 fork，已修复构建）：
+
+```bash
+git clone https://github.com/CinitSwift/NeteaseCloudMusicApi.git
+cd NeteaseCloudMusicApi
+docker build -t cinit-ncm-api .
+docker run -d --name ncm-api --restart unless-stopped -p 3000:3000 cinit-ncm-api
+```
+
+> fork 的 Dockerfile 修复：`node:18-alpine` + npmmirror 源 + `--ignore-scripts`（原 `prepare` 中的 husky 会导致 `npm install --production` 失败）+ 删除 2021 年的旧 lockfile。
+
+### 5. tools
 
 - `announcer.mjs`：早期独立播报脚本（轮询模式），已被 kyouka-welcome 取代；保留作调试备用（`--probe` 查频道成员、`--test` 试播）
 - `list_kook_ids.py`：查询 KOOK 频道/用户 id 的小工具
 
 ## 部署
 
-前置：Docker Desktop、Kyouka 容器（名为 `kyouka`）、macOS（TTS 依赖 `say`）、Node.js ≥ 18、ffmpeg、本机 ncm-api（端口 3000）。
+前置：Docker Desktop、Kyouka 容器（名为 `kyouka`）、macOS（TTS 依赖 `say`）、Node.js ≥ 18、ffmpeg、本机 ncm-api（基于 CinitSwift/NeteaseCloudMusicApi 构建，端口 3000）。
 
 ```bash
 # 1. 构建播放器镜像（Kyouka 按此镜像名创建播放容器）
